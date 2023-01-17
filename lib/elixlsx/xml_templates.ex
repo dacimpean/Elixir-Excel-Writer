@@ -1,8 +1,9 @@
 defmodule Elixlsx.XMLTemplates do
   alias Elixlsx.Util, as: U
   alias Elixlsx.Compiler.CellStyleDB
-  alias Elixlsx.Compiler.FontDB
   alias Elixlsx.Compiler.StringDB
+  alias Elixlsx.Compiler.FontDB
+  alias Elixlsx.Compiler.SheetCompInfo
 
   @doc ~S"""
   There are 5 characters that should be escaped in XML (<,>,",',&), but only
@@ -120,23 +121,27 @@ defmodule Elixlsx.XMLTemplates do
     Enum.map(
       fn {cell, colidx} ->
         {content, styleID} = split_into_content_style(cell, wci)
-        cv = get_content_type_value(content, wci)
-        {contentType, contentValue} =
+        if is_nil(content) do
+          ""
+        else
+          cv = get_content_type_value(content, wci)
+          {contentType, contentValue} =
           case cv do
             {t, v} -> {t, v}
             :error -> raise %ArgumentError{
-                           message: "Invalid column content at " <>
+                        message: "Invalid column content at " <>
                                     U.to_excel_coords(rowidx, colidx) <> ": "
                                     <> (inspect content)
-                                     }
+                                    }
           end
 
-        """
-        <c r="#{U.to_excel_coords(rowidx, colidx)}"
-           s="#{styleID}" t="#{contentType}">
+          """
+          <c r="#{U.to_excel_coords(rowidx, colidx)}"
+          s="#{styleID}" t="#{contentType}">
           <v>#{contentValue}</v>
-        </c>
-        """
+          </c>
+          """
+          end
         end) |>
     List.foldr "", &<>/2
   end
@@ -221,7 +226,7 @@ defmodule Elixlsx.XMLTemplates do
   end
 
   defp style_to_xml_entry(style, wci) do
-    fontid = Elixlsx.Compiler.FontDB.get_id wci.fontdb, style.font
+    fontid = FontDB.get_id wci.fontdb, style.font
     """
     <xf borderId="0"
            fillId="0"
@@ -236,7 +241,7 @@ defmodule Elixlsx.XMLTemplates do
   end
 
   def make_xl_styles(wci) do
-    font_list = Elixlsx.Compiler.FontDB.id_sorted_fonts wci.fontdb
+    font_list = FontDB.id_sorted_fonts wci.fontdb
     cellXfs = CellStyleDB.id_sorted_styles wci.cellstyledb
 
 		"""
