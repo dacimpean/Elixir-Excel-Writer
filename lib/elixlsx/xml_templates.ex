@@ -396,9 +396,31 @@ defmodule Elixlsx.XMLTemplates do
   Create a aligment xml tag from font style.
   """
   defp make_style_alignment(font) do
-    attrs = "" |> wrap_text(font)
-    |> horizontal_alignment(font)
-    |> vertical_alignment(font)
+    attrs = case font.wrap_text do
+        true ->
+          "wrapText=\"1\" "
+        _ ->
+          ""
+      end
+
+    attrs = case font.align_horizontal do
+        nil ->
+          attrs
+        :center ->
+          attrs <> "horizontal=\"center\" "
+        :fill ->
+          attrs <> "horizontal=\"fill\" "
+        :general ->
+          attrs <> "horizontal=\"general\" "
+        :justify ->
+          attrs <> "horizontal=\"justify\" "
+        :left ->
+          attrs <> "horizontal=\"left\" "
+        :right ->
+          attrs <> "horizontal=\"right\" "
+        _ ->
+          raise %ArgumentError{message: "Given horizontal alignment not supported. Only :center, :fill, :general, :justify, :left, :right are available."}
+      end
 
     case attrs do
       "" ->
