@@ -30,7 +30,7 @@ defmodule Elixlsx.Sheet do
             pane_freeze: nil,
             show_grid_lines: true,
             autofilter_ref: nil,
-            filter_cols: %{}
+            autofilter_cols: %{}
 
   @type t :: %Sheet{
           name: String.t(),
@@ -43,7 +43,7 @@ defmodule Elixlsx.Sheet do
           pane_freeze: {number, number} | nil,
           show_grid_lines: boolean(),
           autofilter_ref: {number, number, number, number} | nil,
-          filter_cols: [{number, operator_filter}]
+          autofilter_cols: [{number, operator_filter}]
         }
   @type rowcol_group :: Range.t() | {Range.t(), opts :: keyword}
   @type filter_type :: :list | :operator
@@ -262,7 +262,7 @@ defmodule Elixlsx.Sheet do
   Add filter on a column as a list of inclusive elements
   """
   def append_list_filter(sheet, column, filters) do
-    update_in(sheet.filter_cols, &Map.put(&1, column, {:list, filters}))
+    update_in(sheet.autofilter_cols, &Map.put(&1, column, {:list, filters}))
   end
 
 
@@ -279,7 +279,7 @@ defmodule Elixlsx.Sheet do
   Add filter on a column as an operator-based criteria
   """
   def append_criteria_filter(sheet, column, op, val) do
-    update_in(sheet.filter_cols, &Map.put(&1, column, {:operator, {op, val}}))
+    update_in(sheet.autofilter_cols, &Map.put(&1, column, {:operator, {op, val}}))
   end
 
 
@@ -298,6 +298,6 @@ defmodule Elixlsx.Sheet do
   Add filter on a column as an operator-based criteria
   """
   def append_criteria_filter(sheet, column, op1, val1, op2, val2, connective) do
-    update_in(sheet.filter_cols, &Map.put(&1, column, {:operator, {op1, val1, connective, op2, val2}}))
+    update_in(sheet.autofilter_cols, &Map.put(&1, column, {:operator, {op1, val1, connective, op2, val2}}))
   end
 end
